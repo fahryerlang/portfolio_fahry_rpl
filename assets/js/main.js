@@ -44,11 +44,17 @@ const   contactForm = document.getElementById('contact-form'),
 const   sendEmail = (e) =>{
     e.preventDefault()
 
+    // Tampilkan loading
+    contactMessage.textContent = 'Sending message...'
+    contactMessage.style.color = 'var(--text-color)'
+
     // serviceID - templateID - #form - publicKey
-    emailjs.sendForm('service_7zg57xn','template_t87o2z2',contactForm,'vv6fXyhksL2hTM3I-')
+    // Public key harus sesuai dengan akun EmailJS yang memiliki service dan template
+    emailjs.sendForm('service_vo3gxvv','template_js9at1s', contactForm, 'bKSsSXqEr-U_N6c6k')
     .then(() =>{
         // Show sent message
         contactMessage.textContent = 'Message sent successfully ✅'
+        contactMessage.style.color = 'green'
 
         // Remove message after five seconds
         setTimeout(() =>{
@@ -58,9 +64,11 @@ const   sendEmail = (e) =>{
         // Clear input fields
         contactForm.reset()
 
-    }, () =>{
+    }, (error) =>{
         // Show error message
+        console.log('EmailJS Error:', error)
         contactMessage.textContent = 'Message not sent (service error) ❌'
+        contactMessage.style.color = 'red'
     })
 
 }
@@ -78,22 +86,45 @@ window.addEventListener('scroll', scrollUp)
 
 /*=============== SCROLL SECTIONS ACTIVE LINK ===============*/
 const sections = document.querySelectorAll('section[id]')
+
+// Sections that should activate "About Me" link
+const aboutRelatedSections = ['about', 'services', 'kekurangan', 'resolusi']
     
 const scrollActive = () =>{
 const scrollDown = window.scrollY
+const windowHeight = window.innerHeight
+const documentHeight = document.documentElement.scrollHeight
 
-	sections.forEach(current =>{
-		const sectionHeight = current.offsetHeight,
-              sectionTop = current.offsetTop - 58,
-              sectionId = current.getAttribute('id'),
-              sectionsClass = document.querySelector('.nav__menu a[href*=' + sectionId + ']')
+// First, remove all active links
+document.querySelectorAll('.nav__link').forEach(link => link.classList.remove('active-link'))
 
-		if(sectionsClass && scrollDown > sectionTop && scrollDown <= sectionTop + sectionHeight){
-			sectionsClass.classList.add('active-link')
-		}else if(sectionsClass){
-			sectionsClass.classList.remove('active-link')
-		}                                                    
-	})
+// Check if we're at the bottom of the page for the last section (contact)
+const isAtBottom = (windowHeight + scrollDown) >= (documentHeight - 50)
+
+if(isAtBottom){
+	const contactLink = document.querySelector('.nav__menu a[href*="contact"]')
+	if(contactLink) contactLink.classList.add('active-link')
+	return
+}
+
+// Find which section is currently in view
+sections.forEach(current =>{
+	const sectionHeight = current.offsetHeight,
+		  sectionTop = current.offsetTop - 58,
+		  sectionId = current.getAttribute('id')
+
+	if(scrollDown > sectionTop && scrollDown <= sectionTop + sectionHeight){
+		// Check if this section should activate "About Me"
+		if(aboutRelatedSections.includes(sectionId)){
+			const aboutLink = document.querySelector('.nav__menu a[href*="about"]')
+			if(aboutLink) aboutLink.classList.add('active-link')
+		} else {
+			// For other sections (home, projects, contact), activate their own link
+			const sectionsClass = document.querySelector('.nav__menu a[href*=' + sectionId + ']')
+			if(sectionsClass) sectionsClass.classList.add('active-link')
+		}
+	}
+})
 }
 window.addEventListener('scroll', scrollActive)
 
